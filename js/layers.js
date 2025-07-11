@@ -111,7 +111,7 @@ addLayer("b", {
     hotkeys: [
         {key: "b", description: "b: 进行b-y重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    layerShown(){return player.a.points.gte(1)||hasMilestone("b",2) }
+    layerShown(){return player.a.points.gte(1)||hasMilestone("b",1) }
 })
 addLayer("z", {
     name: "z", // This is optional, only used in a few places, If absent it just uses the layer id.
