@@ -15,8 +15,16 @@ addLayer("a", {
     exponent: 0.5, // Prestige currency exponent 初始值0.5
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
+if(hasMilestone("b",18)) mult = mult.add(1)
        if(hasMilestone("b",2)) mult = mult.mul(2)
 	if(hasMilestone("b",4))mult = mult.mul(player.a.points.add(10).log10())
+if(hasMilestone("b",7)) mult = mult.mul(player.a.upgrades.length+1)
+if(hasMilestone("b",10)) mult = mult.mul(player.a.milestones.length+1)
+if(hasMilestone("b",12)) mult = mult.mul(player.points.add(10).log10())
+if(hasMilestone("b",14)) mult = mult.mul(1.05**player.b.milestones.length)
+if(hasMilestone("b",17)) mult = mult.mul(getBuyableAmount("a",11).add(1))
+if(hasMilestone("b",24)) mult = mult.mul(hasChallenge("a",11)?2:1)
+if(hasMilestone("b",20)) mult = mult.pow(1.01)
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -37,13 +45,100 @@ addLayer("a", {
         },
 
    },
-
-    row: 0, // Row the layer is in on the tree (0 is the first row)
-    hotkeys: [
-        {key: "a", description: "a: 进行变形虫重置", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
-    ],
-    layerShown(){return true},
+              buyables:{
+            11: {
+                cost(x = getBuyableAmount(this.layer, this.id)) {
+                    var c = new Decimal(10000).mul(new Decimal(10).pow(x))
+                  
+                    return c
+                },
+                display() { return `点数获取x${format(buyableEffect(this.layer,this.id),2)}.(下一级: ${format(this.effect(getBuyableAmount(this.layer, this.id).add(1)))})<br />费用:${format(this.cost(getBuyableAmount(this.layer, this.id)))}变形虫<br>等级:${formatWhole(getBuyableAmount(this.layer, this.id))}` },
+                canAfford() { return player.a.points.gte(this.cost()) },
+                buy() {
+                    player.a.points = player.a.points.sub(this.cost())
+                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                },
+               
+                effect(x = getBuyableAmount(this.layer, this.id)){
+                    var eff = x.add(1)
+                  
+                    return eff
+                },
+                unlocked(){return hasMilestone("b",15)},
+            },
   
+       },
+ milestones: {
+        1: {
+            requirementDescription: "100变形虫",
+            effectDescription: "点数获取+1",
+            done() { return player.a.points.gte(100) },
+unlocked(){return player.b.points.gte(8)},
+        },
+},                 
+    row: 0, // Row the layer is in on the tree (0 is the first row)
+     challenges: {
+        11: {
+                name: "点数减少",
+                challengeDescription(){
+
+
+                        let a = "点数获取/2026" 
+
+                        return a 
+                },
+                goalDescription(){
+                        return "2026点数"
+                },
+                challengeEffect(){
+                        let eff =1
+                    
+
+                        return eff
+                },
+                goal: () => "2026",
+                canComplete: () => player.points.gte(tmp.a.challenges[11].goal),
+                rewardDescription(){
+                       
+                       
+                        let b = "点数获取x04.01" 
+                       
+                        return  b
+                },
+                
+                rewardEffect(){let eff=1
+
+                        return eff
+                },
+                unlocked(){
+                        return hasMilestone("b", 22) 
+                },
+               
+        },}, // inChallenge("l", 11)
+   
+ passiveGeneration(){
+        if(hasMilestone("b",21)) return '0.001'
+        return 0
+    },
+    layerShown(){return true},
+   tabFormat: {
+        main: {
+            buttonStyle() {return  {'color': 'lightblue'}},
+            content:
+                ["main-display",
+              
+ ["prestige-button", "", function (){ return hasMilestone("b", 21) ? {'display': 'none'} : {}}],
+"resource-display",
+"milestones",
+"buyables",
+                "upgrades",
+ "challenges",
+                ],},
+     
+   
+
+      
+    },
    
 })
 addLayer("b", {
@@ -71,7 +166,7 @@ addLayer("b", {
     },
   getNextAt(){
         let gain = new Decimal(2).pow(player.b.points)
-      if(player.b.points.gte(6))gain= new Decimal(1e308)
+
         return gain
 },
     milestones: {
@@ -95,16 +190,111 @@ addLayer("b", {
             effectDescription(){return  "变形虫获取基于变形虫增加,当前:x" + format(player.a.points.add(10).log10())},
             done() { return player.b.points.gte(4) }
         }, 
-       5: {
+5: {
             requirementDescription: "5f",
             effectDescription: "解锁一个升级",
             done() { return player.b.points.gte(5) }
         },     
 6: {
             requirementDescription: "6g",
-            effectDescription: "当前残局",
+            effectDescription(){return  "购买变形虫升级数量加成点数获取,当前:x" + format(player.a.upgrades.length+1)},
             done() { return player.b.points.gte(6) }
-        },                                              
+        }, 
+ 7: {
+            requirementDescription: "7h",
+            effectDescription(){return  "购买变形虫升级数量加成变形虫获取,当前:x" + format(player.a.upgrades.length+1)},
+            done() { return player.b.points.gte(7) }
+        },  
+8: {
+            requirementDescription: "8i",
+            effectDescription: "解锁一个里程碑",
+            done() { return player.b.points.gte(8) }
+        },   
+         9: {
+            requirementDescription: "9j",
+            effectDescription(){return  "变形虫里程碑数量加成点数获取,当前:x" + format(player.a.milestones.length+1)},
+            done() { return player.b.points.gte(9) }
+        }, 
+ 10: {
+            requirementDescription: "10k",
+            effectDescription(){return  "变形虫里程碑数量加成变形虫获取,当前:x" + format(player.a.milestones.length+1)},
+            done() { return player.b.points.gte(10) }
+        }, 
+     11: {
+            requirementDescription: "11l",
+            effectDescription(){return  "点数获取基于变形虫增加,当前:x" + format(player.a.points.add(10).log10())},
+            done() { return player.b.points.gte(11) }
+        },   
+12: {
+            requirementDescription: "12m",
+            effectDescription(){return  "变形虫获取基于点数增加,当前:x" + format(player.points.add(10).log10())},
+            done() { return player.b.points.gte(12) }
+        }, 
+ 13: {
+            requirementDescription: "13n",
+            effectDescription(){return  "该层级每个里程碑使点数x1.05,当前:x" + format(1.05**player.b.milestones.length)},
+            done() { return player.b.points.gte(13) }
+        },
+    14: {
+            requirementDescription: "14o",
+            effectDescription(){return  "该层级每个里程碑使变形虫x1.05,当前:x" + format(1.05**player.b.milestones.length)},
+            done() { return player.b.points.gte(14) }
+        },
+    15: {
+            requirementDescription: "15p",
+            effectDescription: "解锁一个可购买",
+            done() { return player.b.points.gte(15) }
+        },
+       16: {
+            requirementDescription: "16q",
+            effectDescription(){return  "变形虫可购买数量加成点数获取,当前:x" + format(getBuyableAmount("a",11).add(1))},
+            done() { return player.b.points.gte(16) }
+        }, 
+       17: {
+            requirementDescription: "17r",
+            effectDescription(){return  "变形虫可购买数量加成变形虫获取,当前:x" + format(getBuyableAmount("a",11).add(1))},
+            done() { return player.b.points.gte(17) }
+        }, 
+  18: {
+            requirementDescription: "18s",
+            effectDescription(){return  "变形虫获取+1"},
+            done() { return player.b.points.gte(18) }
+        }, 
+19: {
+            requirementDescription: "19t",
+            effectDescription(){return  "点数获取^1.01"},
+            done() { return player.b.points.gte(19) }
+        }, 
+20: {
+            requirementDescription: "20u",
+            effectDescription(){return  "变形虫获取^1.01"},
+            done() { return player.b.points.gte(20) }
+        },
+21: {
+            requirementDescription: "21v",
+            effectDescription(){return  "每秒自动获取0.1%的变形虫,禁用变形虫重置"},
+            done() { return player.b.points.gte(21) }
+        },
+    22: {
+            requirementDescription: "22w",
+            effectDescription: "解锁一个挑战",
+            done() { return player.b.points.gte(22) }
+        },
+  23: {
+            requirementDescription: "23x",
+            effectDescription(){return  "完成变形虫挑战数量加成点数获取,当前:x" + format(hasChallenge("a",11)?2:1)},
+            done() { return player.b.points.gte(23) }
+        }, 
+       24: {
+            requirementDescription: "24y",
+            effectDescription(){return  "完成变形虫挑战数量加成变形虫获取,当前:x" + format(hasChallenge("a",11)?2:1)},
+            done() { return player.b.points.gte(24) }
+        },
+        25: {
+            requirementDescription: "25z",
+            effectDescription(){return  "解锁新层级"},
+            done() { return player.b.points.gte(25) }
+        }, 
        },
 
     row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -140,8 +330,8 @@ addLayer("z", {
         0: {
             requirementDescription: "恭喜通关",
             effectDescription: "2026愚人节快乐",
-            done() { return player.b.points.gte(25)},
-            unlocked(){return player.b.points.gte(25)},      
+            done() { return player.z.points.gte(1)},
+            unlocked(){return player.z.points.gte(1)},      
         },
 
     },

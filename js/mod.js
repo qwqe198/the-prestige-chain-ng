@@ -39,9 +39,22 @@ function canGenPoints(){
 // Calculate points/sec!
 function getPointGen() {
 let gain = new Decimal(1)
+if(hasMilestone("a",1)) gain = gain.add(1)
 	if(hasMilestone("b",1)) gain = gain.mul(2)
 	if(hasMilestone("b",3)) gain = gain.mul(player.points.add(10).log10())
-	if(hasUpgrade("a",11)) gain = gain.mul(upgradeEffect("a",11))											
+	if(hasMilestone("b",6)) gain = gain.mul(player.a.upgrades.length+1)
+if(hasMilestone("b",9)) gain = gain.mul(player.a.milestones.length+1)
+if(hasMilestone("b",11)) gain = gain.mul(player.a.points.add(10).log10())
+if(hasMilestone("b",13)) gain = gain.mul(1.05**player.b.milestones.length)
+if(hasMilestone("b",16)) gain = gain.mul(getBuyableAmount("a",11).add(1))
+gain = gain.mul(buyableEffect("a",11))
+	if(hasUpgrade("a",11)) gain = gain.mul(upgradeEffect("a",11))
+if(hasMilestone("b",23)) gain = gain.mul(hasChallenge("a",11)?2:1)
+	if(hasChallenge("a",11))		gain = gain.mul(4.01)
+if(hasMilestone("b",19)) gain = gain.pow(1.01)
+
+	if(inChallenge("a",11))		gain = gain.div(2026)
+
 	return gain
 }
 
